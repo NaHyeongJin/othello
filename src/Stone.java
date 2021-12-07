@@ -1,0 +1,3 @@
+public enum Stone {
+    EMPTY, BLACK_STONE, WHITE_STONE, BLACK_STAR, WHITE_STAR
+}
