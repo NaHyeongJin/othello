@@ -14,17 +14,30 @@ public class Board {
     public void startGame() {
         GamePlay turn = GamePlay.WHITE_TURN;
         System.out.println("오델로 시작");
+        Boolean endFlag = false;
         while (true) {
-            makeStar(turn);
-            // 만약 생성된 star가 0개면 밑에 생략하고 다음 턴으로 변경
-            // 변경했는데도 star가 0개면 게임 종료
+            removeStar();
+            Boolean starCheck = makeStar(turn);
+            if (!starCheck && !endFlag) {
+                endFlag = true;
+                turn = (turn == GamePlay.WHITE_TURN) ? GamePlay.BLACK_TURN : GamePlay.WHITE_TURN;
+                System.out.println("둘 곳이 없어 턴을 넘깁니다.");
+                continue;
+            }
+            if (!starCheck && endFlag) {
+                System.out.println("게임을 종료합니다.");
+                break;
+            }
+            if (starCheck) {
+                endFlag = false;
+            }
             printBoard();
             System.out.print("어디 둘지 입력 x, y좌표 ex) 2, 4 : ");
             String[] str = scanner.nextLine().replaceAll(" ", "").split(",");
             int x, y;
             try {
-                x = Integer.parseInt(str[0]);
-                y = Integer.parseInt(str[1]);
+                x = Integer.parseInt(str[0]) - 1;
+                y = Integer.parseInt(str[1]) - 1;
                 if (str.length != 2 || 0 > x || 8 < x
                         || 0 > y || 8 < y) {
                     System.out.println("잘못 입력하였습니다.");
@@ -34,11 +47,39 @@ public class Board {
                 System.out.println("숫자를 입력해주세요.");
                 continue;
             }
-            if (reverseStone(x, y, turn))
+            if (reverseStone(x, y, turn)) {
                 removeStar();
+            } else {
+                System.out.println("그 곳에는 둘 수 없습니다.");
+                continue;
+            }
             turn = (turn == GamePlay.WHITE_TURN) ? GamePlay.BLACK_TURN : GamePlay.WHITE_TURN;
         }
-        // 결산 함수 실행
+        result();
+    }
+
+    private void result() {
+        int black = 0;
+        int white = 0;
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                if (board[i][j] == Stone.BLACK_STONE.ordinal()) {
+                    black++;
+                }
+                if (board[i][j] == Stone.WHITE_STONE.ordinal()) {
+                    white++;
+                }
+            }
+        }
+        printBoard();
+        System.out.println("black : " + black + " vs " + "white : " + white);
+        if (black > white) {
+            System.out.println("black의 승리입니다.");
+        } else if (black < white) {
+            System.out.println("white의 승리입니다.");
+        } else {
+            System.out.println("무승부입니다.");
+        }
     }
 
     private void printBoard() {
@@ -60,6 +101,7 @@ public class Board {
         }
     }
 
+    // 별 생성하는데 성공했으면 true 아니면 false 리턴
     private Boolean makeStar(GamePlay turn) {
         Boolean result = false;
         String checkedStar = "";
@@ -151,9 +193,11 @@ public class Board {
             }
 
             Boolean flag = false;
-            while (temp_x > 0 && temp_x < 7 && temp_y > 0 && temp_y < 7) {
+            while (temp_x >= 0 && temp_x <= 7 && temp_y >= 0 && temp_y <= 7) {
                 temp_x += vector_x;
                 temp_y += vector_y;
+                if (temp_x < 0 || temp_x > 7 || temp_y < 0 || temp_y > 7)
+                    break;
                 if (board[temp_x][temp_y] == currentStone) {
                     flag = true;
                 } else if (flag && board[temp_x][temp_y] == targetStone.ordinal()) {
